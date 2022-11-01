@@ -5,6 +5,7 @@ import statsmodels.api as s
 import requests 
 import matplotlib.pyplot as plt 
 import json 
+from statsmodels.tsa.stattools import adfuller
 
 #x = [3,4,5,9,1,10,2]
 #y = [4,4,9,1,2,3,1]
@@ -12,43 +13,57 @@ import json
 #x = s.add_constant(x)
 #model = s.OLS(y, x)
 #results = model.fit() 
-
-
 # alpha vantage 
 
 def handle_msg(msg):
-    return msg.json() 
+    return msg.json()['Result']
+
+p_pairs = ['ETH-USD', 'SOL-USD']   # permissable pairs 
+
 
 class Pair():
 
-    p_pairs = []   # permissable pairs 
-
 
     def __init__(self, pairx, pairy):
-        if pairx and pairy in self.p_pairs:
+        if pairx and pairy in p_pairs:
             self.pairx = pairx
             self.pairy = pairy
         else:
-            None
+            self.pairx = None
+            self.pairy = None
     
     def returns(self, lookback):
-        x = w.data(f'url/{self.pairx}/{lookback}')
-        y = w.data(f'url/{self.pairy}/{lookback}')
-        self.x_returns = x['Adj Close'].pctchange()
-        self.y_returns = y['Adj Close'].pctchange()
-        return x, y
+        if self.pairx and self.pairy:
+            x = w.get_data_yahoo(self.pairx, start=lookback[0], end=lookback[1])
+            y = w.get_data_yahoo(self.pairy, start=lookback[0], end=lookback[1])
+            self.x_returns = x['Adj Close']
+            self.y_returns = y['Adj Close']
+            return self.x_returns, self.y_returns
+        else:
+            print('Pairs not permissable')
     
     def ols(self):
-        x = s.add_constant(self.x_returns)        
-        model = s.OLS(self.y_returns, x)
-        res = model.fit()
-        return res 
+        if self.pairx and self.pairy:
+            x = s.add_constant(self.x_returns)        
+            model = s.OLS(self.y_returns, x)
+            self.res = model.fit()
+            return f'residuals are \n {self.res.resid}'
+        else:
+            print('Pairs not permissable')
+
+    def adf(self):
+        a = adfuller(self.res.resid)
+        plt.plot(self.res.resid)
+        plt.title(f'{self.pairx} / {self.pairy} spread \n adf-p value = {a[1]:3f}')
+        plt.show()
+        return f'engle-granger params for {self.pairx} and {self.pairy} \n {a}'
+
+lookback1 = ['2022-01-01', '2022-10-12']
+
+btc_sol = Pair('ETH-USD', 'SOL-USD')
+
+print(btc_sol.returns(lookback1))
+print(btc_sol.ols())
+print(btc_sol.adf())
 
 
-    
-btc_sol = Pair('btc', 'sol')
-print(btc_sol.returns())
-
-
-
-        
