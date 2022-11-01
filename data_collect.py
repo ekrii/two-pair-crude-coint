@@ -7,18 +7,10 @@ import matplotlib.pyplot as plt
 import json 
 from statsmodels.tsa.stattools import adfuller
 
-#x = [3,4,5,9,1,10,2]
-#y = [4,4,9,1,2,3,1]
 
-#x = s.add_constant(x)
-#model = s.OLS(y, x)
-#results = model.fit() 
-# alpha vantage 
 
-def handle_msg(msg):
-    return msg.json()['Result']
-
-p_pairs = ['ETH-USD', 'SOL-USD']   # permissable pairs 
+p_pairs = ['ETH-USD', 'SOL-USD']   # permissable pairs, you may alter this for top x pairs in volume
+                                    # or whatever other metric
 
 
 class Pair():
