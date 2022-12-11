@@ -2,9 +2,7 @@ import pandas as pd
 import pandas_datareader as w 
 import numpy as np 
 import statsmodels.api as s 
-import requests 
 import matplotlib.pyplot as plt 
-import json 
 from statsmodels.tsa.stattools import adfuller
 
 
